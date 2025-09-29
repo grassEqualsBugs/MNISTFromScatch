@@ -10,7 +10,8 @@ class NeuralNetwork:
     def __init__(self, layer_spec: list[tuple[int, ActivationFunc]]) -> None:
         # init layers with Inputlayer
         self.layers: list[Union[InputLayer, Layer]] = [InputLayer(layer_spec[0][0])]
-        for i, (layer_size, activation_func) in enumerate(layer_spec):
+        for i in range(1, len(layer_spec)):
+            layer_size, activation_func = layer_spec[i]
             self.layers.append(
                 Layer(
                     n_inputs=layer_spec[i - 1][0],
