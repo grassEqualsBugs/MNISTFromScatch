@@ -2,6 +2,8 @@ from typing import Union
 from typing_extensions import override
 from layer import InputLayer, Layer
 from util import ActivationFunc, ReLU, Sigmoid
+from numpy.typing import NDArray
+import numpy as np
 
 
 class NeuralNetwork:
@@ -26,9 +28,15 @@ class NeuralNetwork:
 
     @override
     def __repr__(self) -> str:
-        return "[\n" + "\n".join(str(layer) for layer in self.layers) + "\n]"
+        return "[\n" + "\n".join(str(layer) for layer in self.layers) + "\n]\n"
+
+    # (TODO): finish this
+    def feed_forward(self, in_activations: NDArray[np.float64]) -> NDArray[np.float64]:
+        return self.layers[-1].activations
 
 
 # quick test
 nn = NeuralNetwork([(5, None), (3, ReLU), (3, ReLU), (2, Sigmoid)])
-print(nn)
+print(nn, "-" * 20)
+assert isinstance(nn.layers[1], Layer)
+print(nn.layers[1].compute(np.array([1.0, 0.5, 0.75, 0.75, 1.0])))
