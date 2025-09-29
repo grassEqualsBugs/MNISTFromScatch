@@ -12,9 +12,8 @@ class InputLayer:
     def __repr__(self) -> str:
         return f"InputLayer(activations={self.activations})"
 
-    def compute(self, in_activations: NDArray[np.float64]) -> NDArray[np.float64]:
+    def set_layer(self, in_activations: NDArray[np.float64]) -> None:
         self.activations = in_activations
-        return self.activations
 
 
 class Layer:
@@ -25,18 +24,17 @@ class Layer:
         self.n_inputs: int = n_inputs
         """
         Weights is a matrix:
-        Let n = n_inputs, m = n_neurons.
+        Let n = n_inputs-1, m = n_neurons-1.
         Then we have
-            [ w_00      w_10      ...       w_(m-1)0      ]
-            [ w_01      w_11      ...       w_(m-1)1      ]
-        W = [ w_02      w_12      ...       w_(m-1)2      ]
-            [ ...       ...       ...       ...           ]
-            [ w_0(n-1)  w_1(n-1)  ...       w_(m-1)(n-1)  ]
-        where for any neuron 0 <= k < m, its weights are the vector [w_k0 ... w_k(n-1)]
-
-        np.random.rand(a,b) constructs matrix with a rows, b columns
+            [ w_00      w_01      ...       w_0n ]
+            [ w_10      w_11      ...       w_1n ]
+        W = [ w_20      w_21      ...       w_2n ]
+            [ ...       ...       ...       ...  ]
+            [ w_m0      w_m1      ...       w_mn ]
+        where for any neuron 0 <= k <= m, its weights are the row vector [w_k0, w_k1, ..., w_kn]
         """
-        self.weights: NDArray[np.float64] = np.random.rand(n_inputs, n_neurons)
+        # create weights matrix with...              n_inputs rows, n_neurons cols
+        self.weights: NDArray[np.float64] = np.random.rand(n_neurons, n_inputs)
         self.bias: NDArray[np.float64] = np.random.rand(n_neurons)
         self.activations: NDArray[np.float64] = np.zeros(n_neurons)
 
