@@ -7,20 +7,23 @@ import numpy as np
 
 
 class NeuralNetwork:
-    # layerSpec array is just an array of tuples. the first tuple is
-    # just one element long because its the input. the tuples are structured
-    # in that (layerSize, activationFunction)
+    # layer_spec is a list of tuples. The first tuple is just one element long
+    # because it's the input. Tuples are structured as (layerSize, activationFunction)
     def __init__(
         self, layer_spec: list[tuple[int, Union[ActivationFunc, None]]]
     ) -> None:
-        # init layers with Inputlayer
-        self.layers: list[Union[InputLayer, Layer]] = [InputLayer(layer_spec[0][0])]
-        for i in range(1, len(layer_spec)):
-            layer_size, activation_func = layer_spec[i]
+        # first tuple defines the input layer
+        self.input_layer: InputLayer = InputLayer(layer_spec[0][0])
+
+        # all other tuples define regular layers
+        self.layers: list[Layer] = []
+        for (prev_size, _), (layer_size, activation_func) in zip(
+            layer_spec[:-1], layer_spec[1:]
+        ):
             assert activation_func
             self.layers.append(
                 Layer(
-                    n_inputs=layer_spec[i - 1][0],
+                    n_inputs=prev_size,
                     n_neurons=layer_size,
                     activation_func=activation_func,
                 )
@@ -28,15 +31,28 @@ class NeuralNetwork:
 
     @override
     def __repr__(self) -> str:
-        return "[\n" + "\n".join(str(layer) for layer in self.layers) + "\n]\n"
+        return (
+            "[\n"
+            + str(self.input_layer)
+            + "\n"
+            + "\n".join(str(layer) for layer in self.layers)
+            + "\n]\n"
+        )
 
-    # (TODO): finish this
     def feed_forward(self, in_activations: NDArray[np.float64]) -> NDArray[np.float64]:
-        return self.layers[-1].activations
+        # set activations for input layer
+        self.input_layer.set_activations(in_activations)
+
+        # pass activations forward through each layer
+        prev_activations = self.input_layer.activations
+        for layer in self.layers:
+            layer.compute(prev_activations)
+            prev_activations = layer.activations
+
+        return prev_activations
 
 
 # quick test
 nn = NeuralNetwork([(5, None), (3, ReLU), (3, ReLU), (2, Sigmoid)])
 print(nn, "-" * 20)
-assert isinstance(nn.layers[1], Layer)
-print(nn.layers[1].compute(np.array([1.0, 0.5, 0.75, 0.75, 1.0])))
+print(nn.feed_forward(np.array([1.0, 0.5, 0.75, 0.75, 1.0])))

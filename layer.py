@@ -12,7 +12,7 @@ class InputLayer:
     def __repr__(self) -> str:
         return f"InputLayer(activations={self.activations})"
 
-    def set_layer(self, in_activations: NDArray[np.float64]) -> None:
+    def set_activations(self, in_activations: NDArray[np.float64]) -> None:
         self.activations = in_activations
 
 
@@ -43,9 +43,8 @@ class Layer:
         return f"Layer(\nweights=\n{self.weights}, \nbias={self.bias}, \nactivations={self.activations}\n)"
 
     # z_k = σ(Wz_(k-1)+b) where z_k is the kth layer
-    def compute(self, in_activations: NDArray[np.float64]) -> NDArray[np.float64]:
+    def compute(self, in_activations: NDArray[np.float64]) -> None:
         assert in_activations.size == self.n_inputs
         self.activations = self.activation_func(
             self.weights @ in_activations + self.bias
         )
-        return self.activations
