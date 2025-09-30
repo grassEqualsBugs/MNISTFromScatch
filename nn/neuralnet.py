@@ -62,6 +62,35 @@ class NeuralNetwork:
         self.training_data = training_data
         self.training_labels = training_labels
 
+    def handle_minibatch(
+        self,
+        data: NDArray[np.float64],
+        labels: NDArray[np.float64],
+        learning_rate: np.float64,
+    ):
+        avg_C: np.float64 = np.float64(0.0)
+        # compute average cost
+        for i, x in enumerate(data):
+            """
+            x is the training data for one training example
+            y is the correct vector for the label of x
+            a is the prediction vector output by the network with input x
+            C is the quadratic cost function, calculated by ||(a-y)||^2
+            """
+            a: NDArray[np.float64] = self.feed_forward(x)
+            y: NDArray[np.float64] = np.eye(1, 10, labels[i], dtype=np.float64).ravel()
+            C: np.float64 = np.sum((a - y) ** 2)
+
+            print("Prediction:", a)
+            print("Correct:", y)
+            print("Cost:", C)
+            print(("-" * 30 + "\n") * 3)
+
+            avg_C += C
+        avg_C /= len(data)
+        print("Average cost:", avg_C)
+        # TODO: update weights and biases with stochastic gradient descent and backprop
+
     def train(self, n_epochs: int, minibatch_size: int, learning_rate: np.float64):
         for i in range(1, n_epochs + 1):
             print("Epoch number:", i)
@@ -72,6 +101,8 @@ class NeuralNetwork:
             tlabels = self.training_labels[p]
 
             for j in range(0, len(tdata), minibatch_size):
-                minibatch_data = tdata[j : j + minibatch_size]
-                minibatch_labels = tlabels[j : j + minibatch_size]
-                # TODO: train on minibatch, using back prop and updating weights
+                self.handle_minibatch(
+                    tdata[j : j + minibatch_size],
+                    tlabels[j : j + minibatch_size],
+                    learning_rate,
+                )
