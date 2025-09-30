@@ -34,8 +34,8 @@ class Layer:
         where for any neuron 0 <= k <= m, its weights are the row vector [w_k0, w_k1, ..., w_kn]
         """
         # create weights matrix with...              n_inputs rows, n_neurons cols
-        self.weights: NDArray[np.float64] = np.random.rand(n_neurons, n_inputs)
-        self.bias: NDArray[np.float64] = np.random.rand(n_neurons)
+        self.weights: NDArray[np.float64] = np.random.randn(n_neurons, n_inputs)
+        self.bias: NDArray[np.float64] = np.random.randn(n_neurons)
         self.activations: NDArray[np.float64] = np.zeros(n_neurons)
 
     @override

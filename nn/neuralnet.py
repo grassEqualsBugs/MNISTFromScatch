@@ -13,6 +13,10 @@ class NeuralNetwork:
     def __init__(
         self, layer_spec: list[tuple[int, Union[ActivationFunc, None]]]
     ) -> None:
+        # training data to be set later
+        self.training_data: NDArray[np.float64]
+        self.training_labels: NDArray[np.float64]
+
         # first tuple defines the input layer
         self.input_layer: InputLayer = InputLayer(layer_spec[0][0])
 
@@ -51,3 +55,25 @@ class NeuralNetwork:
             prev_activations = layer.activations
 
         return prev_activations
+
+    def load_training(
+        self, training_data: NDArray[np.float64], training_labels: NDArray[np.float64]
+    ):
+        self.training_data = training_data
+        self.training_labels = training_labels
+
+    def train(self, n_epochs: int, minibatch_size: int, learning_rate: np.float64):
+        for i in range(1, n_epochs + 1):
+            tdata: NDArray[np.float64] = self.training_data.copy()
+            tlabels: NDArray[np.float64] = self.training_labels.copy()
+
+            print("Epoch number:", i)
+            while len(tdata) > 0:
+                idx = np.random.choice(
+                    len(tdata), size=min(minibatch_size, len(tdata)), replace=False
+                )
+                minibatch_data = tdata[idx]
+                minibatch_labels = tlabels[idx]
+
+                tdata = np.delete(tdata, idx, axis=0)
+                tlabels = np.delete(tlabels, idx, axis=0)
