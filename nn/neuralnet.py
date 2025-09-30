@@ -64,16 +64,14 @@ class NeuralNetwork:
 
     def train(self, n_epochs: int, minibatch_size: int, learning_rate: np.float64):
         for i in range(1, n_epochs + 1):
-            tdata: NDArray[np.float64] = self.training_data.copy()
-            tlabels: NDArray[np.float64] = self.training_labels.copy()
-
             print("Epoch number:", i)
-            while len(tdata) > 0:
-                idx = np.random.choice(
-                    len(tdata), size=min(minibatch_size, len(tdata)), replace=False
-                )
-                minibatch_data = tdata[idx]
-                minibatch_labels = tlabels[idx]
 
-                tdata = np.delete(tdata, idx, axis=0)
-                tlabels = np.delete(tlabels, idx, axis=0)
+            # shuffle training data and labels together
+            p = np.random.permutation(len(self.training_data))
+            tdata = self.training_data[p]
+            tlabels = self.training_labels[p]
+
+            for j in range(0, len(tdata), minibatch_size):
+                minibatch_data = tdata[j : j + minibatch_size]
+                minibatch_labels = tlabels[j : j + minibatch_size]
+                # TODO: train on minibatch, using back prop and updating weights
