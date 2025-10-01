@@ -37,14 +37,13 @@ class Layer:
         self.weights: NDArray[np.float64] = np.random.randn(n_neurons, n_inputs)
         self.bias: NDArray[np.float64] = np.random.randn(n_neurons)
         self.activations: NDArray[np.float64] = np.zeros(n_neurons)
+        self.weighted_activations: NDArray[np.float64] = np.zeros(n_neurons)
 
     @override
     def __repr__(self) -> str:
         return f"Layer(\nweights=\n{self.weights}, \nbias={self.bias}, \nactivations={self.activations}\n)"
 
-    # z_k = σ(Wz_(k-1)+b) where z_k is the kth layer
     def compute(self, in_activations: NDArray[np.float64]) -> None:
         assert in_activations.size == self.n_inputs
-        self.activations = self.activation_func(
-            self.weights @ in_activations + self.bias
-        )
+        self.weighted_activations = self.weights @ in_activations + self.bias
+        self.activations = self.activation_func(self.weighted_activations)
