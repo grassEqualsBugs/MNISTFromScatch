@@ -1,10 +1,10 @@
 import numpy as np
 
 from nn.neuralnet import NeuralNetwork
-from nn.util import Softmax, ReLU
+from nn.util import Sigmoid, ReLU
 from mnist.loader import load_mnistdata
 
-nn = NeuralNetwork([(28 * 28, None), (30, ReLU), (10, Softmax)])
+nn = NeuralNetwork([(28 * 28, None), (30, ReLU), (10, Sigmoid)])
 
 mnistdata = load_mnistdata()
 
