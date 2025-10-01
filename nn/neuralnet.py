@@ -100,9 +100,17 @@ class NeuralNetwork:
             tdata = self.training_data[p]
             tlabels = self.training_labels[p]
 
-            for j in range(0, len(tdata), minibatch_size):
+            DEV_MODE = True
+            if DEV_MODE:
                 self.handle_minibatch(
-                    tdata[j : j + minibatch_size],
-                    tlabels[j : j + minibatch_size],
+                    tdata[0:minibatch_size],
+                    tlabels[0:minibatch_size],
                     learning_rate,
                 )
+            else:
+                for j in range(0, len(tdata), minibatch_size):
+                    self.handle_minibatch(
+                        tdata[j : j + minibatch_size],
+                        tlabels[j : j + minibatch_size],
+                        learning_rate,
+                    )
