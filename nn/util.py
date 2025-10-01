@@ -5,6 +5,17 @@ from typing import Callable
 ActivationFunc = Callable[[NDArray[np.float64]], NDArray[np.float64]]
 
 
+def getActivationFuncDerivative(func: ActivationFunc):
+    if func == Sigmoid:
+        return SigmoidPrime
+    elif func == ReLU:
+        return ReLUPrime
+    else:
+        raise ValueError(
+            f"Activation function {func} does not have a defined derivative in code"
+        )
+
+
 # Sigmoid(x) = 1/(1+e^(-x))
 def Sigmoid(x: NDArray[np.float64]) -> NDArray[np.float64]:
     return 1 / (1 + np.exp(-x))
