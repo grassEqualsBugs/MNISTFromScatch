@@ -62,13 +62,8 @@ class NeuralNetwork:
         self.training_data = training_data
         self.training_labels = training_labels
 
-    def handle_minibatch(
-        self,
-        data: NDArray[np.float64],
-        labels: NDArray[np.float64],
-        learning_rate: np.float64,
-    ):
-        avg_C: np.float64 = np.float64(0.0)
+    def average_cost(self, data: NDArray[np.float64], labels: NDArray[np.float64]):
+        cost: np.float64 = np.float64(0.0)
         # compute average cost
         for i, x in enumerate(data):
             """
@@ -80,16 +75,16 @@ class NeuralNetwork:
             a: NDArray[np.float64] = self.feed_forward(x)
             y: NDArray[np.float64] = np.eye(1, 10, labels[i], dtype=np.float64).ravel()
             C: np.float64 = np.sum((a - y) ** 2)
+            cost += C
+        return cost / len(data)
 
-            print("Prediction:", a)
-            print("Correct:", y)
-            print("Cost:", C)
-            print(("-" * 30 + "\n") * 3)
-
-            avg_C += C
-        avg_C /= len(data)
-        print("Average cost:", avg_C)
-        # TODO: update weights and biases with stochastic gradient descent and backprop
+    def handle_minibatch(
+        self,
+        data: NDArray[np.float64],
+        labels: NDArray[np.float64],
+        learning_rate: np.float64,
+    ):
+        pass
 
     def train(self, n_epochs: int, minibatch_size: int, learning_rate: np.float64):
         for i in range(1, n_epochs + 1):
@@ -100,17 +95,9 @@ class NeuralNetwork:
             tdata = self.training_data[p]
             tlabels = self.training_labels[p]
 
-            DEV_MODE = True
-            if DEV_MODE:
+            for j in range(0, len(tdata), minibatch_size):
                 self.handle_minibatch(
-                    tdata[0:minibatch_size],
-                    tlabels[0:minibatch_size],
+                    tdata[j : j + minibatch_size],
+                    tlabels[j : j + minibatch_size],
                     learning_rate,
                 )
-            else:
-                for j in range(0, len(tdata), minibatch_size):
-                    self.handle_minibatch(
-                        tdata[j : j + minibatch_size],
-                        tlabels[j : j + minibatch_size],
-                        learning_rate,
-                    )

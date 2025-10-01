@@ -9,4 +9,4 @@ nn = NeuralNetwork([(28 * 28, None), (30, ReLU), (10, Softmax)])
 mnistdata = load_mnistdata()
 
 nn.load_training(mnistdata["train_images"], mnistdata["train_labels"])
-nn.train(1, 10, np.float64(3.0))
+nn.train(30, 10, np.float64(3.0))
