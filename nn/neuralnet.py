@@ -14,9 +14,9 @@ class NeuralNetwork:
     def __init__(
         self, layer_spec: list[tuple[int, Union[ActivationFunc, None]]]
     ) -> None:
-        # training data to be set later
-        self.training_data: NDArray[np.float64]
-        self.training_labels: NDArray[np.float64]
+        # data to be set later
+        self.data: NDArray[np.float64]
+        self.labels: NDArray[np.float64]
 
         # first tuple defines the input layer
         self.input_layer: InputLayer = InputLayer(layer_spec[0][0])
@@ -57,11 +57,9 @@ class NeuralNetwork:
 
         return prev_activations
 
-    def load_training(
-        self, training_data: NDArray[np.float64], training_labels: NDArray[np.float64]
-    ):
-        self.training_data = training_data
-        self.training_labels = training_labels
+    def load_data(self, data: NDArray[np.float64], labels: NDArray[np.float64]) -> None:
+        self.data = data
+        self.labels = labels
 
     def layer_activation_func_deriv(self, l: int) -> ActivationFunc:
         return activation_func_deriv(self.layers[l].activation_func)
@@ -104,7 +102,7 @@ class NeuralNetwork:
         data: NDArray[np.float64],
         labels: NDArray[np.float64],
         eta: np.float64,
-    ):
+    ) -> None:
         accumulated_pderiv_C_b = [np.zeros(l.bias.shape) for l in self.layers]
         accumulated_pderiv_C_w = [np.zeros(l.weights.shape) for l in self.layers]
         for i, x in enumerate(data):
@@ -123,14 +121,14 @@ class NeuralNetwork:
             self.layers[l].weights -= accumulated_pderiv_C_w[l] * eta / len(data)
             self.layers[l].bias -= accumulated_pderiv_C_b[l] * eta / len(data)
 
-    def train(self, n_epochs: int, minibatch_size: int, eta: np.float64):
+    def train(self, n_epochs: int, minibatch_size: int, eta: np.float64) -> None:
         for i in range(1, n_epochs + 1):
             print("Epoch number:", i)
 
             # shuffle training data and labels together
-            p = np.random.permutation(len(self.training_data))
-            tdata = self.training_data[p]
-            tlabels = self.training_labels[p]
+            p = np.random.permutation(len(self.data))
+            tdata = self.data[p]
+            tlabels = self.labels[p]
 
             for j in range(0, len(tdata), minibatch_size):
                 self.handle_minibatch(
@@ -138,3 +136,38 @@ class NeuralNetwork:
                     tlabels[j : j + minibatch_size],
                     eta,
                 )
+
+    def test(self):
+        correct = 0
+        for i, x in enumerate(self.data):
+            a = self.feed_forward(x)
+            y = self.labels[i]
+            correct += max(a) == a[y]
+        print(f"Network testing stats: {correct}/{len(self.data)}")
+
+    def save_network(self, file_path: str) -> None:
+        # we use a dictionary to store the parameters with descriptive keys
+        save_dict = {}
+        for i, layer in enumerate(self.layers):
+            save_dict[f"weights_{i}"] = layer.weights
+            save_dict[f"bias_{i}"] = layer.bias
+
+        # np.savez_compressed is efficient for saving multiple numpy arrays
+        np.savez_compressed(file_path, **save_dict)
+        print(f"network saved to {file_path}")
+
+    def load_network(self, file_path: str) -> None:
+        # load the .npz file, which acts like a dictionary
+        loaded_data = np.load(file_path)
+
+        # check if the loaded data matches the network architecture
+        if len(loaded_data.files) != len(self.layers) * 2:
+            raise ValueError(
+                "saved model architecture does not match current network architecture."
+            )
+
+        # assign the loaded weights and biases to the layers
+        for i, layer in enumerate(self.layers):
+            layer.weights = loaded_data[f"weights_{i}"]
+            layer.bias = loaded_data[f"bias_{i}"]
+        print(f"network loaded from {file_path}")

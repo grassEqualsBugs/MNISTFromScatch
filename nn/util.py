@@ -18,9 +18,15 @@ def activation_func_deriv(func: ActivationFunc):
 
 # Sigmoid(x) = 1/(1+e^(-x))
 def Sigmoid(x: NDArray[np.float64]) -> NDArray[np.float64]:
-    return np.where(
-        x >= 0, 1 / (1 + np.exp(-x)), np.exp(x) / (1 + np.exp(x))
-    )
+    result = np.empty_like(x)
+
+    pos_mask = x >= 0
+    result[pos_mask] = 1 / (1 + np.exp(-x[pos_mask]))
+
+    neg_mask = ~pos_mask  # invert the mask
+    result[neg_mask] = np.exp(x[neg_mask]) / (1 + np.exp(x[neg_mask]))
+
+    return result
 
 
 # Sigmoid'(x) = d/dx Sigmoid(x) = e^(-x)/(1+e^(-x))^2
