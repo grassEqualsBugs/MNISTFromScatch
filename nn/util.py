@@ -50,3 +50,10 @@ def Softmax(x: NDArray[np.float64]) -> NDArray[np.float64]:
     # shift for numerical stability
     e_x: NDArray[np.float64] = np.exp(x - np.max(x))
     return e_x / np.sum(e_x)
+
+
+ACTIVATION_MAP = {
+    "Sigmoid": Sigmoid,
+    "ReLU": ReLU,
+    "Softmax": Softmax,
+}

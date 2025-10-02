@@ -1,19 +1,23 @@
-from re import L
 from typing import Union
 from typing_extensions import override
 from numpy.typing import NDArray
 import numpy as np
+import json
 
 from nn.layer import InputLayer, Layer
-from nn.util import ActivationFunc, activation_func_deriv
+from nn.util import ActivationFunc, activation_func_deriv, ACTIVATION_MAP
+
+LayerSpec = list[tuple[int, Union[ActivationFunc, None]]]
 
 
 class NeuralNetwork:
     # layer_spec is a list of tuples. The first tuple is just one element long
     # because it's the input. Tuples are structured as (layerSize, activationFunction)
     def __init__(
-        self, layer_spec: list[tuple[int, Union[ActivationFunc, None]]]
+        self,
+        layer_spec: LayerSpec,
     ) -> None:
+        self.layer_spec = layer_spec
         # data to be set later
         self.data: NDArray[np.float64]
         self.labels: NDArray[np.float64]
@@ -38,11 +42,11 @@ class NeuralNetwork:
     @override
     def __repr__(self) -> str:
         return (
-            "NeuralNetwork(\n"
+            "NeuralNetwork("
             + str(self.input_layer)
             + ",\n"
             + ",\n".join(str(layer) for layer in self.layers)
-            + "\n)\n"
+            + "\n)"
         )
 
     def feed_forward(self, in_activations: NDArray[np.float64]) -> NDArray[np.float64]:
@@ -66,7 +70,9 @@ class NeuralNetwork:
 
     # computes partial derivatives for weights and biases for one training example given by a and y
     def backprop(
-        self, a: NDArray[np.float64], y: NDArray[np.float64]
+        self,
+        a: NDArray[np.float64],
+        y: NDArray[np.float64],
     ) -> tuple[list[NDArray[np.float64]], list[NDArray[np.float64]]]:
         pderiv_C_b = [np.zeros(l.bias.shape) for l in self.layers]
         pderiv_C_w = [np.zeros(l.weights.shape) for l in self.layers]
@@ -145,7 +151,7 @@ class NeuralNetwork:
             correct += max(a) == a[y]
         print(f"Network testing stats: {correct}/{len(self.data)}")
 
-    def save_network(self, file_path: str) -> None:
+    def save_weights_and_biases(self, file_path: str) -> None:
         # we use a dictionary to store the parameters with descriptive keys
         save_dict = {}
         for i, layer in enumerate(self.layers):
@@ -154,9 +160,9 @@ class NeuralNetwork:
 
         # np.savez_compressed is efficient for saving multiple numpy arrays
         np.savez_compressed(file_path, **save_dict)
-        print(f"network saved to {file_path}")
+        print(f"network weights saved to {file_path}")
 
-    def load_network(self, file_path: str) -> None:
+    def load_weights_and_biases(self, file_path: str) -> None:
         # load the .npz file, which acts like a dictionary
         loaded_data = np.load(file_path)
 
@@ -170,4 +176,33 @@ class NeuralNetwork:
         for i, layer in enumerate(self.layers):
             layer.weights = loaded_data[f"weights_{i}"]
             layer.bias = loaded_data[f"bias_{i}"]
-        print(f"network loaded from {file_path}")
+        print(f"network weights loaded from {file_path}")
+
+    def save_architecture(self, file_path: str):
+        serializable_spec = []
+        for size, func in self.layer_spec:
+            func_name = None
+            if func is not None:
+                # find the function name by iterating through the map
+                for name, map_func in ACTIVATION_MAP.items():
+                    if func == map_func:
+                        func_name = name
+                        break
+            serializable_spec.append((size, func_name))
+
+        with open(file_path, "w") as f:
+            json.dump(serializable_spec, f, indent=4)
+        print(f"model architecture saved to {file_path}")
+
+
+def load_architecture(file_path: str) -> list[tuple[int, Union[None, ActivationFunc]]]:
+    with open(file_path, "r") as f:
+        loaded_spec = json.load(f)
+
+    # convert string names back to function objects
+    layer_spec = [
+        (size, ACTIVATION_MAP.get(func_name)) for size, func_name in loaded_spec
+    ]
+
+    print(f"model architecture loaded from {file_path}")
+    return layer_spec
