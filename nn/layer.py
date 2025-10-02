@@ -26,12 +26,12 @@ class Layer:
         Weights is a matrix:
         Let n = n_inputs-1, m = n_neurons-1.
         Then we have
-            [ w_00      w_01      ...       w_0n ]
+           [[ w_00      w_01      ...       w_0n ]
             [ w_10      w_11      ...       w_1n ]
         W = [ w_20      w_21      ...       w_2n ]
             [ ...       ...       ...       ...  ]
-            [ w_m0      w_m1      ...       w_mn ]
-        where for any neuron 0 <= k <= m, its weights are the row vector [w_k0, w_k1, ..., w_kn]
+            [ w_m0      w_m1      ...       w_mn ]]
+        where for any neuron 0 <= j <= m, its weights are the row vector [w_j0, w_j1, ..., w_jn]
         """
         # create weights matrix with...              n_inputs rows, n_neurons cols
         self.weights: NDArray[np.float64] = np.random.randn(n_neurons, n_inputs)

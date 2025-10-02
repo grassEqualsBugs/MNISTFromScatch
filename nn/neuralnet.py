@@ -1,10 +1,11 @@
+from re import L
 from typing import Union
 from typing_extensions import override
 from numpy.typing import NDArray
 import numpy as np
 
 from nn.layer import InputLayer, Layer
-from nn.util import ActivationFunc
+from nn.util import ActivationFunc, activation_func_deriv
 
 
 class NeuralNetwork:
@@ -62,31 +63,67 @@ class NeuralNetwork:
         self.training_data = training_data
         self.training_labels = training_labels
 
-    def average_cost(self, data: NDArray[np.float64], labels: NDArray[np.float64]):
-        cost: np.float64 = np.float64(0.0)
-        # compute average cost
-        for i, x in enumerate(data):
-            """
-            x is the training data for one training example
-            y is the correct vector for the label of x
-            a is the prediction vector output by the network with input x
-            C is the quadratic cost function, calculated by ||(a-y)||^2
-            """
-            a: NDArray[np.float64] = self.feed_forward(x)
-            y: NDArray[np.float64] = np.eye(1, 10, labels[i], dtype=np.float64).ravel()
-            C: np.float64 = np.sum((a - y) ** 2)
-            cost += C
-        return cost / len(data)
+    def layer_activation_func_deriv(self, l: int) -> ActivationFunc:
+        return activation_func_deriv(self.layers[l].activation_func)
+
+    # computes partial derivatives for weights and biases for one training example given by a and y
+    def backprop(
+        self, a: NDArray[np.float64], y: NDArray[np.float64]
+    ) -> tuple[list[NDArray[np.float64]], list[NDArray[np.float64]]]:
+        pderiv_C_b = [np.zeros(l.bias.shape) for l in self.layers]
+        pderiv_C_w = [np.zeros(l.weights.shape) for l in self.layers]
+
+        # error and gradients for the OUTPUT layer
+        grad_C_a: NDArray[np.float64] = 2 * (a - y)
+        error = grad_C_a * self.layer_activation_func_deriv(-1)(
+            self.layers[-1].weighted_activations
+        )
+        pderiv_C_b[-1] = error
+        pderiv_C_w[-1] = np.outer(error, self.layers[-2].activations)
+
+        # loop backwards through the hidden layers
+        for l in range(len(self.layers) - 2, -1, -1):
+            # error for the current layer l
+            error = (
+                self.layers[l + 1].weights.T @ error
+            ) * self.layer_activation_func_deriv(l)(self.layers[l].weighted_activations)
+
+            # partial derivatives for layer l using the new error
+            a_lm1 = (
+                self.layers[l - 1].activations
+                if l > 0
+                else self.input_layer.activations
+            )
+            pderiv_C_b[l] = error
+            pderiv_C_w[l] = np.outer(error, a_lm1)
+
+        return (pderiv_C_w, pderiv_C_b)
 
     def handle_minibatch(
         self,
         data: NDArray[np.float64],
         labels: NDArray[np.float64],
-        learning_rate: np.float64,
+        eta: np.float64,
     ):
-        pass
+        accumulated_pderiv_C_b = [np.zeros(l.bias.shape) for l in self.layers]
+        accumulated_pderiv_C_w = [np.zeros(l.weights.shape) for l in self.layers]
+        for i, x in enumerate(data):
+            a: NDArray[np.float64] = self.feed_forward(x)
+            y: NDArray[np.float64] = np.eye(1, 10, labels[i], dtype=np.float64).ravel()
+            pderiv_C_w, pderiv_C_b = self.backprop(a, y)
+            accumulated_pderiv_C_b = [
+                prev + addition
+                for prev, addition in zip(accumulated_pderiv_C_b, pderiv_C_b)
+            ]
+            accumulated_pderiv_C_w = [
+                prev + addition
+                for prev, addition in zip(accumulated_pderiv_C_w, pderiv_C_w)
+            ]
+        for l in range(len(self.layers)):
+            self.layers[l].weights -= accumulated_pderiv_C_w[l] * eta / len(data)
+            self.layers[l].bias -= accumulated_pderiv_C_b[l] * eta / len(data)
 
-    def train(self, n_epochs: int, minibatch_size: int, learning_rate: np.float64):
+    def train(self, n_epochs: int, minibatch_size: int, eta: np.float64):
         for i in range(1, n_epochs + 1):
             print("Epoch number:", i)
 
@@ -99,5 +136,5 @@ class NeuralNetwork:
                 self.handle_minibatch(
                     tdata[j : j + minibatch_size],
                     tlabels[j : j + minibatch_size],
-                    learning_rate,
+                    eta,
                 )

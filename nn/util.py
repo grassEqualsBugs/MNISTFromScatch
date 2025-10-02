@@ -5,7 +5,7 @@ from typing import Callable
 ActivationFunc = Callable[[NDArray[np.float64]], NDArray[np.float64]]
 
 
-def getActivationFuncDerivative(func: ActivationFunc):
+def activation_func_deriv(func: ActivationFunc):
     if func == Sigmoid:
         return SigmoidPrime
     elif func == ReLU:
@@ -18,12 +18,15 @@ def getActivationFuncDerivative(func: ActivationFunc):
 
 # Sigmoid(x) = 1/(1+e^(-x))
 def Sigmoid(x: NDArray[np.float64]) -> NDArray[np.float64]:
-    return 1 / (1 + np.exp(-x))
+    return np.where(
+        x >= 0, 1 / (1 + np.exp(-x)), np.exp(x) / (1 + np.exp(x))
+    )
 
 
 # Sigmoid'(x) = d/dx Sigmoid(x) = e^(-x)/(1+e^(-x))^2
 def SigmoidPrime(x: NDArray[np.float64]) -> NDArray[np.float64]:
-    return np.exp(-x) / (1 + np.exp(-x)) ** 2
+    s = Sigmoid(x)
+    return s * (1 - s)
 
 
 # ReLU(x) = max(0, x)
