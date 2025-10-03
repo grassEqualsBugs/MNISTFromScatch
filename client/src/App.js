@@ -1,23 +1,41 @@
-import logo from "./logo.svg";
-import "./App.css";
+import { useState } from "react";
 
 function App() {
+    const [text, setText] = useState("");
+    const [response, setResponse] = useState("");
+
+    const handleTextChange = (event) => {
+        setText(event.target.value);
+    };
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        fetch("/data", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ text }),
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                console.log("Response from /data:", data);
+                setResponse(JSON.stringify(data));
+            })
+            .catch((error) => {
+                console.error("Error sending data:", error);
+            });
+    };
+
     return (
-        <div className="App">
-            <header className="App-header">
-                <img src={logo} className="App-logo" alt="logo" />
-                <p>
-                    Edit <code>src/App.js</code> and save to reload.
-                </p>
-                <a
-                    className="App-link"
-                    href="https://reactjs.org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Learn React
-                </a>
-            </header>
+        <div>
+            <h1>Send data to Flask</h1>
+            <form onSubmit={handleSubmit}>
+                <input type="text" value={text} onChange={handleTextChange} />
+                <button type="submit">Send</button>
+            </form>
+            <h2>Response from server:</h2>
+            <p>{response}</p>
         </div>
     );
 }
