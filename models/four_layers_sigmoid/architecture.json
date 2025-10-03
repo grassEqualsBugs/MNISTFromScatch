@@ -1,0 +1,22 @@
+{
+    "layer_spec": [
+        [
+            784,
+            null
+        ],
+        [
+            100,
+            "Sigmoid"
+        ],
+        [
+            30,
+            "Sigmoid"
+        ],
+        [
+            10,
+            "Sigmoid"
+        ]
+    ],
+    "cost_function": "QuadraticCost",
+    "weight_initialization": "Standard"
+}

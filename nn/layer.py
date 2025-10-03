@@ -1,7 +1,7 @@
+from nn.util import ActivationFunc, WEIGHT_INIT_MAP
 from typing_extensions import override
 import numpy as np
 from numpy.typing import NDArray
-from nn.util import ActivationFunc
 
 
 class InputLayer:
@@ -18,7 +18,7 @@ class InputLayer:
 
 class Layer:
     def __init__(
-        self, n_inputs: int, n_neurons: int, activation_func: ActivationFunc
+        self, n_inputs: int, n_neurons: int, activation_func: ActivationFunc, weight_init_name: str = "Standard"
     ) -> None:
         self.activation_func: ActivationFunc = activation_func
         self.n_inputs: int = n_inputs
@@ -34,7 +34,12 @@ class Layer:
         where for any neuron 0 <= j <= m, its weights are the row vector [w_j0, w_j1, ..., w_jn]
         """
         # create weights matrix with...              n_inputs rows, n_neurons cols
-        self.weights: NDArray[np.float64] = np.random.randn(n_neurons, n_inputs)
+        self.weights: NDArray[np.float64] = WEIGHT_INIT_MAP[weight_init_name](
+            n_neurons, n_inputs
+        )
+        # self.weights: NDArray[np.float64] = np.random.randn(
+        #     n_neurons, n_inputs
+        # ) * np.sqrt(2.0 / n_inputs)
         self.bias: NDArray[np.float64] = np.random.randn(n_neurons)
         self.activations: NDArray[np.float64] = np.zeros(n_neurons)
         self.weighted_activations: NDArray[np.float64] = np.zeros(n_neurons)

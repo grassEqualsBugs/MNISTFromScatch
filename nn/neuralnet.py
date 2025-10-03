@@ -5,7 +5,13 @@ import numpy as np
 import json
 
 from nn.layer import InputLayer, Layer
-from nn.util import ActivationFunc, activation_func_deriv, ACTIVATION_MAP
+from nn.util import (
+    ActivationFunc,
+    activation_func_deriv,
+    ACTIVATION_MAP,
+    COST_MAP,
+    Softmax,
+)
 
 LayerSpec = list[tuple[int, Union[ActivationFunc, None]]]
 
@@ -16,8 +22,11 @@ class NeuralNetwork:
     def __init__(
         self,
         layer_spec: LayerSpec,
+        cost_func_name: str = "QuadraticCost",
+        weight_init_name: str = "Standard",
     ) -> None:
         self.layer_spec = layer_spec
+        self.weight_init_name = weight_init_name
         # data to be set later
         self.data: NDArray[np.float64]
         self.labels: NDArray[np.float64]
@@ -36,8 +45,10 @@ class NeuralNetwork:
                     n_inputs=prev_size,
                     n_neurons=layer_size,
                     activation_func=activation_func,
+                    weight_init_name=self.weight_init_name,
                 )
             )
+        self.cost_func = COST_MAP[cost_func_name]()
 
     @override
     def __repr__(self) -> str:
@@ -78,10 +89,13 @@ class NeuralNetwork:
         pderiv_C_w = [np.zeros(l.weights.shape) for l in self.layers]
 
         # error and gradients for the OUTPUT layer
-        grad_C_a: NDArray[np.float64] = 2 * (a - y)
-        error = grad_C_a * self.layer_activation_func_deriv(-1)(
-            self.layers[-1].weighted_activations
-        )
+        grad_C_a: NDArray[np.float64] = self.cost_func.derivative(a, y)
+        if self.layers[-1].activation_func == Softmax:
+            error = grad_C_a
+        else:
+            error = grad_C_a * self.layer_activation_func_deriv(-1)(
+                self.layers[-1].weighted_activations
+            )
         pderiv_C_b[-1] = error
         pderiv_C_w[-1] = np.outer(error, self.layers[-2].activations)
 
@@ -190,14 +204,32 @@ class NeuralNetwork:
                         break
             serializable_spec.append((size, func_name))
 
+        cost_func_name = None
+        for name, cost_func_class in COST_MAP.items():
+            if isinstance(self.cost_func, cost_func_class):
+                cost_func_name = name
+                break
+
+        architecture = {
+            "layer_spec": serializable_spec,
+            "cost_function": cost_func_name,
+            "weight_initialization": self.weight_init_name,
+        }
+
         with open(file_path, "w") as f:
-            json.dump(serializable_spec, f, indent=4)
+            json.dump(architecture, f, indent=4)
         print(f"model architecture saved to {file_path}")
 
 
-def load_architecture(file_path: str) -> list[tuple[int, Union[None, ActivationFunc]]]:
+def load_architecture(
+    file_path: str,
+) -> tuple[list[tuple[int, Union[None, ActivationFunc]]], str, str]:
     with open(file_path, "r") as f:
-        loaded_spec = json.load(f)
+        architecture = json.load(f)
+
+    loaded_spec = architecture["layer_spec"]
+    cost_func_name = architecture["cost_function"]
+    weight_init_name = architecture["weight_initialization"]
 
     # convert string names back to function objects
     layer_spec = [
@@ -205,4 +237,4 @@ def load_architecture(file_path: str) -> list[tuple[int, Union[None, ActivationF
     ]
 
     print(f"model architecture loaded from {file_path}")
-    return layer_spec
+    return layer_spec, cost_func_name, weight_init_name

@@ -57,3 +57,50 @@ ACTIVATION_MAP = {
     "ReLU": ReLU,
     "Softmax": Softmax,
 }
+
+
+class CostFunc:
+    def cost(self, a: NDArray[np.float64], y: NDArray[np.float64]) -> np.float64:
+        raise NotImplementedError
+
+    def derivative(
+        self, a: NDArray[np.float64], y: NDArray[np.float64]
+    ) -> NDArray[np.float64]:
+        raise NotImplementedError
+
+
+class QuadraticCost(CostFunc):
+    def cost(self, a: NDArray[np.float64], y: NDArray[np.float64]) -> np.float64:
+        return np.linalg.norm(a - y) ** 2
+
+    def derivative(
+        self, a: NDArray[np.float64], y: NDArray[np.float64]
+    ) -> NDArray[np.float64]:
+        return 2 * (a - y)
+
+
+class CrossEntropyCost(CostFunc):
+    def cost(self, a: NDArray[np.float64], y: NDArray[np.float64]) -> np.float64:
+        return np.sum(np.nan_to_num(-y * np.log(a) - (1 - y) * np.log(1 - a)))
+
+    def derivative(
+        self, a: NDArray[np.float64], y: NDArray[np.float64]
+    ) -> NDArray[np.float64]:
+        return a - y
+
+
+COST_MAP = {"QuadraticCost": QuadraticCost, "CrossEntropyCost": CrossEntropyCost}
+
+
+def Kaiming(n_neurons, n_inputs):
+    return np.random.randn(n_neurons, n_inputs) * np.sqrt(2.0 / n_inputs)
+
+
+def Standard(n_neurons, n_inputs):
+    return np.random.randn(n_neurons, n_inputs)
+
+
+WEIGHT_INIT_MAP = {
+    "Kaiming": Kaiming,
+    "Standard": Standard,
+}
