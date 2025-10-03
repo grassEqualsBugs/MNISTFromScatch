@@ -1,9 +1,21 @@
 {
     "layer_spec": [
-        [784, null],
-        [100, "ReLU"],
-        [30, "ReLU"],
-        [10, "Softmax"]
+        [
+            784,
+            null
+        ],
+        [
+            100,
+            "ReLU"
+        ],
+        [
+            30,
+            "ReLU"
+        ],
+        [
+            10,
+            "Softmax"
+        ]
     ],
     "cost_function": "CrossEntropyCost",
     "weight_initialization": "Kaiming"
