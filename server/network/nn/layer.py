@@ -1,4 +1,4 @@
-from nn.util import ActivationFunc, WEIGHT_INIT_MAP
+from network.nn.util import ActivationFunc, WEIGHT_INIT_MAP
 from typing_extensions import override
 import numpy as np
 from numpy.typing import NDArray
@@ -18,7 +18,11 @@ class InputLayer:
 
 class Layer:
     def __init__(
-        self, n_inputs: int, n_neurons: int, activation_func: ActivationFunc, weight_init_name: str = "Standard"
+        self,
+        n_inputs: int,
+        n_neurons: int,
+        activation_func: ActivationFunc,
+        weight_init_name: str = "Standard",
     ) -> None:
         self.activation_func: ActivationFunc = activation_func
         self.n_inputs: int = n_inputs

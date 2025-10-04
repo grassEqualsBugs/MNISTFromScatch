@@ -10,7 +10,7 @@ function drawScene(canvas, grid, mousePosition) {
     context.fillStyle = "black";
     for (let row = 0; row < 28; row++) {
         for (let col = 0; col < 28; col++) {
-            if (grid[row][col]) {
+            if (grid[row][col] === 1) {
                 context.fillRect(
                     col * cellSize,
                     row * cellSize,
@@ -71,9 +71,7 @@ function UserInput({ size, grid, setGrid }) {
         };
         const handleKeyDown = (event) => {
             if (event.code === "KeyR") {
-                setGrid(
-                    Array.from({ length: 28 }, () => Array(28).fill(false)),
-                );
+                setGrid(Array.from({ length: 28 }, () => Array(28).fill(0)));
             }
         };
 
@@ -111,8 +109,8 @@ function UserInput({ size, grid, setGrid }) {
                     const dx = mousePosition.x - cellPos.x;
                     const dy = mousePosition.y - cellPos.y;
                     if (dx * dx + dy * dy <= drawingRadius * drawingRadius) {
-                        if (newGrid[row][col] === false) {
-                            newGrid[row][col] = true;
+                        if (newGrid[row][col] === 0) {
+                            newGrid[row][col] = 1;
                             changed = true;
                         }
                     }

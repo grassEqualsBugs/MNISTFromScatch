@@ -4,8 +4,8 @@ from numpy.typing import NDArray
 import numpy as np
 import json
 
-from nn.layer import InputLayer, Layer
-from nn.util import (
+from network.nn.layer import InputLayer, Layer
+from network.nn.util import (
     ActivationFunc,
     activation_func_deriv,
     ACTIVATION_MAP,

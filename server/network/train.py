@@ -2,8 +2,8 @@ import numpy as np
 import os
 import time
 
-from nn.neuralnet import LayerSpec, NeuralNetwork
-from nn.util import ReLU, Softmax
+from network.nn.neuralnet import LayerSpec, NeuralNetwork
+from network.nn.util import ReLU, Softmax
 from mnist.loader import load_mnistdata
 
 model_name = "four_layers_relu"

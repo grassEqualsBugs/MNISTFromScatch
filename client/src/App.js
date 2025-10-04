@@ -1,33 +1,48 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import "./App.css";
 import UserInput from "./components/UserInput";
 
 function App() {
-    /*
-    useEffect(() => {
-        fetch("/data", {
+    const defaultGrid = Array.from({ length: 28 }, () => Array(28).fill(0));
+    const [grid, setGrid] = useState(defaultGrid);
+    const [prediction, setPrediction] = useState([]);
+
+    function onPredictPressed() {
+        fetch("/predict", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ data: "Some data" }),
+            body: JSON.stringify({ activations: grid }),
         })
             .then((res) => res.json())
             .then((data) => {
-                console.log("Response from /data:", data);
+                console.log("Response from /predict:", data);
+                setPrediction(
+                    data.prediction.map((percent, i) => {
+                        return { key: i, percent: percent };
+                    }),
+                );
             })
             .catch((error) => {
                 console.error("Error sending data:", error);
             });
-    }, []);
-    */
-
-    const defaultGrid = Array.from({ length: 28 }, () => Array(28).fill(false));
-    const [grid, setGrid] = useState(defaultGrid);
+    }
 
     return (
         <div className="App">
             <UserInput size="728" grid={grid} setGrid={setGrid} />
+            <div className="prediction">
+                <button onClick={onPredictPressed}>PREDICT</button>
+                <p>Prediction:</p>
+                <ul>
+                    {prediction.map(({ key, percent }, n) => (
+                        <li>
+                            {n}: {(percent * 100).toFixed(3)}%
+                        </li>
+                    ))}
+                </ul>
+            </div>
         </div>
     );
 }
