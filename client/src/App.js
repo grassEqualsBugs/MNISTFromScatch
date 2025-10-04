@@ -33,8 +33,9 @@ function App() {
         <div className="App">
             <UserInput size="728" grid={grid} setGrid={setGrid} />
             <div className="prediction">
+                <p>Press R to reset</p>
                 <button onClick={onPredictPressed}>PREDICT</button>
-                <p>Prediction:</p>
+                <p className="predictionText">Prediction:</p>
                 <ul>
                     {prediction.map(({ key, percent }, n) => (
                         <li>
