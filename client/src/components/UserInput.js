@@ -71,26 +71,18 @@ function UserInput({ size, grid, setGrid }) {
         const handleMouseUp = (event) => {
             if (event.button === 0) setMouseDown(false);
         };
-        const handleKeyDown = (event) => {
-            if (event.code === "KeyR") {
-                setGrid(Array.from({ length: 28 }, () => Array(28).fill(0)));
-            }
-        };
-
-        window.addEventListener("keydown", handleKeyDown);
         canvas.addEventListener("mousemove", handleMouseMove);
         canvas.addEventListener("mousedown", handleMouseDown);
         canvas.addEventListener("mouseup", handleMouseUp);
         canvas.addEventListener("mouseleave", handleMouseUp); // also stop drawing if mouse leaves
 
         return () => {
-            window.removeEventListener("keydown", handleKeyDown);
             canvas.removeEventListener("mousemove", handleMouseMove);
             canvas.removeEventListener("mousedown", handleMouseDown);
             canvas.removeEventListener("mouseup", handleMouseUp);
             canvas.removeEventListener("mouseleave", handleMouseUp);
         };
-    }, [setGrid]);
+    }, []);
 
     // effect for updating the grid when drawing
     useEffect(() => {
