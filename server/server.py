@@ -1,7 +1,5 @@
 from flask import Flask, jsonify, request
 from network.nn.neuralnet import NeuralNetwork, load_architecture
-
-from network.mnist.loader import load_mnistdata
 import numpy as np
 
 app = Flask(__name__)
@@ -16,10 +14,6 @@ nn = NeuralNetwork(
     layer_spec, cost_func_name=cost_func_name, weight_init_name=weight_init_name
 )
 nn.load_weights_and_biases(weights_path)
-mnistdata = load_mnistdata()
-nn.load_data(mnistdata["test_images"], mnistdata["test_labels"])
-
-nn.test()
 
 
 @app.route("/predict", methods=["POST"])
