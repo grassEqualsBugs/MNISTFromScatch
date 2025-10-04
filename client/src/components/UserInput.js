@@ -1,0 +1,137 @@
+import { useEffect, useRef, useState } from "react";
+
+function drawScene(canvas, grid, mousePosition) {
+    const context = canvas.getContext("2d");
+    const size = canvas.width;
+    const cellSize = size / 28;
+    context.clearRect(0, 0, size, size);
+
+    // filled squares
+    context.fillStyle = "black";
+    for (let row = 0; row < 28; row++) {
+        for (let col = 0; col < 28; col++) {
+            if (grid[row][col]) {
+                context.fillRect(
+                    col * cellSize,
+                    row * cellSize,
+                    cellSize,
+                    cellSize,
+                );
+            }
+        }
+    }
+
+    // grid
+    context.beginPath();
+    context.strokeStyle = "#ccc";
+    for (let row = 0; row <= 28; row++) {
+        context.moveTo(0, row * cellSize);
+        context.lineTo(size, row * cellSize);
+    }
+    for (let col = 0; col <= 28; col++) {
+        context.moveTo(col * cellSize, 0);
+        context.lineTo(col * cellSize, size);
+    }
+    context.stroke();
+
+    // red mouse circle
+    context.beginPath();
+    context.arc(
+        mousePosition.x,
+        mousePosition.y,
+        1.5 * cellSize,
+        0,
+        2 * Math.PI,
+    );
+    context.strokeStyle = "red";
+    context.stroke();
+}
+
+function UserInput({ size, grid, setGrid }) {
+    const canvasRef = useRef(null);
+    const [mousePosition, setMousePosition] = useState({ x: -1, y: -1 });
+    const [mouseDown, setMouseDown] = useState(false);
+
+    // effect for handling event listeners
+    useEffect(() => {
+        const canvas = canvasRef.current;
+
+        const handleMouseMove = (event) => {
+            const rect = canvas.getBoundingClientRect();
+            setMousePosition({
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top,
+            });
+        };
+        const handleMouseDown = (event) => {
+            if (event.button === 0) setMouseDown(true);
+        };
+        const handleMouseUp = (event) => {
+            if (event.button === 0) setMouseDown(false);
+        };
+        const handleKeyDown = (event) => {
+            if (event.code === "KeyR") {
+                setGrid(
+                    Array.from({ length: 28 }, () => Array(28).fill(false)),
+                );
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        canvas.addEventListener("mousemove", handleMouseMove);
+        canvas.addEventListener("mousedown", handleMouseDown);
+        canvas.addEventListener("mouseup", handleMouseUp);
+        canvas.addEventListener("mouseleave", handleMouseUp); // also stop drawing if mouse leaves
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+            canvas.removeEventListener("mousemove", handleMouseMove);
+            canvas.removeEventListener("mousedown", handleMouseDown);
+            canvas.removeEventListener("mouseup", handleMouseUp);
+            canvas.removeEventListener("mouseleave", handleMouseUp);
+        };
+    }, [setGrid]);
+
+    // effect for updating the grid when drawing
+    useEffect(() => {
+        if (mouseDown) {
+            const cellSize = size / 28;
+            const drawingRadius = 1.5 * cellSize;
+
+            // create a deep copy of the 2D grid to avoid mutation
+            const newGrid = grid.map((row) => [...row]);
+            let changed = false;
+
+            for (let row = 0; row < 28; row++) {
+                for (let col = 0; col < 28; col++) {
+                    const cellPos = {
+                        x: (col + 0.5) * cellSize,
+                        y: (row + 0.5) * cellSize,
+                    };
+                    const dx = mousePosition.x - cellPos.x;
+                    const dy = mousePosition.y - cellPos.y;
+                    if (dx * dx + dy * dy <= drawingRadius * drawingRadius) {
+                        if (newGrid[row][col] === false) {
+                            newGrid[row][col] = true;
+                            changed = true;
+                        }
+                    }
+                }
+            }
+
+            if (changed) {
+                setGrid(newGrid);
+            }
+        }
+    }, [mouseDown, mousePosition, grid, setGrid, size]);
+
+    // effect for drawing the scene
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        drawScene(canvas, grid, mousePosition);
+    }, [grid, mousePosition]);
+
+    return <canvas ref={canvasRef} width={size} height={size}></canvas>;
+}
+
+export default UserInput;

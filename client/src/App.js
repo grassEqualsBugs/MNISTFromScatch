@@ -1,41 +1,33 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import "./App.css";
+import UserInput from "./components/UserInput";
 
 function App() {
-    const [text, setText] = useState("");
-    const [response, setResponse] = useState("");
-
-    const handleTextChange = (event) => {
-        setText(event.target.value);
-    };
-
-    const handleSubmit = (event) => {
-        event.preventDefault();
+    /*
+    useEffect(() => {
         fetch("/data", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ text }),
+            body: JSON.stringify({ data: "Some data" }),
         })
             .then((res) => res.json())
             .then((data) => {
                 console.log("Response from /data:", data);
-                setResponse(JSON.stringify(data));
             })
             .catch((error) => {
                 console.error("Error sending data:", error);
             });
-    };
+    }, []);
+    */
+
+    const defaultGrid = Array.from({ length: 28 }, () => Array(28).fill(false));
+    const [grid, setGrid] = useState(defaultGrid);
 
     return (
-        <div>
-            <h1>Send data to Flask</h1>
-            <form onSubmit={handleSubmit}>
-                <input type="text" value={text} onChange={handleTextChange} />
-                <button type="submit">Send</button>
-            </form>
-            <h2>Response from server:</h2>
-            <p>{response}</p>
+        <div className="App">
+            <UserInput size="728" grid={grid} setGrid={setGrid} />
         </div>
     );
 }
