@@ -5,6 +5,7 @@ from scipy.ndimage import center_of_mass, shift
 
 app = Flask(__name__)
 
+# load in the model
 model_name = "four_layers_relu"
 model_path = f"network/models/{model_name}"
 weights_path = f"{model_path}/weights_and_biases/60e30m0.1l.npz"
@@ -16,22 +17,17 @@ nn = NeuralNetwork(
 )
 nn.load_weights_and_biases(weights_path)
 
+
 def preprocess_image(image_1d):
-    """Centers the digit within the 28x28 grid."""
-    # Reshape the flat array into a 28x28 grid
     image_2d = np.reshape(image_1d, (28, 28))
 
-    # Calculate the center of mass
+    # calculate the center of mass
     com = center_of_mass(image_2d)
 
-    # Calculate the shift required to move the center of mass to the center of the grid
-    # The center of a 28x28 grid is at approximately 13.5, 13.5
+    # shift of a 28x28 grid is at approximately 13.5, 13.5
     shift_arr = (13.5 - com[0], 13.5 - com[1])
-
-    # Apply the shift to the image
     shifted_image = shift(image_2d, shift_arr, cval=0)
 
-    # Flatten the processed image back to a 1D array and return
     return shifted_image.ravel()
 
 
@@ -40,12 +36,10 @@ def handle_prediction():
     data = request.get_json()
     activations = np.array(data["activations"])
 
-    # Pre-process the image to center the digit
+    # pre-process the image to center the digit
     processed_activations = preprocess_image(activations)
 
-    return jsonify(
-        {"prediction": nn.feed_forward(processed_activations).tolist()}
-    )
+    return jsonify({"prediction": nn.feed_forward(processed_activations).tolist()})
 
 
 if __name__ == "__main__":
