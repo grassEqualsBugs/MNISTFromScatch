@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 
-function drawScene(canvas, grid, mousePosition) {
+function drawScene(canvas, drawingRadius, grid, mousePosition) {
     const context = canvas.getContext("2d");
     const size = canvas.width;
     const cellSize = size / 28;
     context.clearRect(0, 0, size, size);
 
     // filled squares
-    context.fillStyle = "black";
     for (let row = 0; row < 28; row++) {
         for (let col = 0; col < 28; col++) {
-            if (grid[row][col] === 1) {
+            if (grid[row][col] > 0) {
+                const grayValue = 255 * (1 - grid[row][col]);
+                context.fillStyle = `rgb(${grayValue}, ${grayValue}, ${grayValue})`;
                 context.fillRect(
                     col * cellSize,
                     row * cellSize,
@@ -39,7 +40,7 @@ function drawScene(canvas, grid, mousePosition) {
     context.arc(
         mousePosition.x,
         mousePosition.y,
-        1.5 * cellSize,
+        drawingRadius,
         0,
         2 * Math.PI,
     );
@@ -49,6 +50,7 @@ function drawScene(canvas, grid, mousePosition) {
 
 function UserInput({ size, grid, setGrid }) {
     const canvasRef = useRef(null);
+    const drawingRadius = (2 * size) / 28;
     const [mousePosition, setMousePosition] = useState({ x: -1, y: -1 });
     const [mouseDown, setMouseDown] = useState(false);
 
@@ -94,7 +96,6 @@ function UserInput({ size, grid, setGrid }) {
     useEffect(() => {
         if (mouseDown) {
             const cellSize = size / 28;
-            const drawingRadius = 1.5 * cellSize;
 
             // create a deep copy of the 2D grid to avoid mutation
             const newGrid = grid.map((row) => [...row]);
@@ -108,9 +109,12 @@ function UserInput({ size, grid, setGrid }) {
                     };
                     const dx = mousePosition.x - cellPos.x;
                     const dy = mousePosition.y - cellPos.y;
-                    if (dx * dx + dy * dy <= drawingRadius * drawingRadius) {
-                        if (newGrid[row][col] === 0) {
-                            newGrid[row][col] = 1;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist <= drawingRadius) {
+                        const fillValue = 1 - Math.pow(dist / drawingRadius, 4);
+                        if (newGrid[row][col] < fillValue) {
+                            newGrid[row][col] = fillValue;
                             changed = true;
                         }
                     }
@@ -121,13 +125,13 @@ function UserInput({ size, grid, setGrid }) {
                 setGrid(newGrid);
             }
         }
-    }, [mouseDown, mousePosition, grid, setGrid, size]);
+    }, [mouseDown, drawingRadius, mousePosition, grid, setGrid, size]);
 
     // effect for drawing the scene
     useEffect(() => {
         const canvas = canvasRef.current;
-        drawScene(canvas, grid, mousePosition);
-    }, [grid, mousePosition]);
+        drawScene(canvas, drawingRadius, grid, mousePosition);
+    }, [grid, drawingRadius, mousePosition]);
 
     return <canvas ref={canvasRef} width={size} height={size}></canvas>;
 }
