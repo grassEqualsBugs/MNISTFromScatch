@@ -1,0 +1,4 @@
+Flask
+numpy
+idx2numpy
+typing_extensions
