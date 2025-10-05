@@ -48,7 +48,7 @@ To run this project, you will need to run the backend server and the frontend ap
     # For Windows
     python server.py
     ```
-    The backend server will start on `http://localhost:5000`.
+    The backend server will start on `http://localhost:3001`.
 
 ### Frontend (React App)
 
